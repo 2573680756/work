@@ -2,7 +2,7 @@
 
 Transformer是大型语言模型的主流架构。然而，transformer的训练并行性是以低效的推理为代价，这使得transformer对部署不友好。不断增长的序列长度会增加GPU内存消耗和延迟，并降低推理速度。许多算法都在继续开发下一代架构，旨在保持训练并行性和transformer的竞争性能，同时具有高效的O(1)推理复杂度。但同时实现上述目标是具有挑战性的，即所谓的不可能三角形（如下图）。
 
-![1747960765983](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747960765983.png)
+![1747960765983](RetNet.assets\1747960765983.png)
 
 参考论文：Retentive Network: A Successor to Transformer for Large Language Models
 
@@ -19,11 +19,11 @@ RetNet代码：https://github.com/microsoft/torchscale/blob/main/torchscale/comp
 
 ## 对比Transformer
 
-![1747961199723](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747961199723.png)
+![1747961199723](RetNet.assets\1747961199723.png)
 
 图 1：与 Transformer 相比，保留网络 (RetNet) 实现了低成本推理（即 GPU 内存、吞吐量和延迟）、训练并行性和良好的扩展曲线。推理成本结果以 8k 作为输入长度。图 6 显示了不同序列长度下的更多结果。
 
-![1747961443761](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747961443761.png)
+![1747961443761](RetNet.assets\1747961443761.png)
 
 当输入序列长度增加的时候，RetNet 的 GPU 显存占用一直是稳定的和权值差不多，而 Transformer 则是和输入长度成正比。
 
@@ -60,7 +60,7 @@ $$
 
 ## **Retention 机制**
 
-![1747962091270](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747962091270.png)
+![1747962091270](RetNet.assets\1747962091270.png)
 $$
 v_{N}=X_{n}\cdot w_{V}
 $$
@@ -68,7 +68,7 @@ $$
 $$
 Q=XW_Q,K=XW_K
 $$
-![1747962359619](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747962359619.png)
+![1747962359619](RetNet.assets\1747962359619.png)
 $$
 s_n=As_{n-1}+K_n^Tv_n
 $$
@@ -77,11 +77,11 @@ $$
 o_n=Q_ns_n=\sum_{m=1}^nQ_nA^{n-m}K_m^Tv_m
 $$
 
-![1747962508715](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747962508715.png)
+![1747962508715](RetNet.assets\1747962508715.png)
 $$
 \begin{aligned}Q_{n}s_{n}&=Q_n(As_{n-1}+K_n^Tv_n)\\&=Q_n(A(As_{n-2}+K_{n-1}^Tv_{n-1})+K_n^Tv_n)\\&=Q_n(A^2s_{n-2}+A^1K_{n-1}^Tv_{n-1}+A^0K_n^Tv_n)\\&=Q_n(A^2(As_{n-3}+K_{n-2}^Tv_{n-2})+A^1K_{n-1}^Tv_{n-1}+A^0K_n^Tv_n)\\&=Q_n(A^3s_{n-3}+A^2K_{n-2}^Tv_{n-2}+A^1K_{n-1}^Tv_{n-1}+A^0K_n^Tv_n)\end{aligned}
 $$
-![1747962610000](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747962610000.png)
+![1747962610000](RetNet.assets\1747962610000.png)
 $$
 s_1=As_0+K_1^Tv_1=K_1^Tv_1
 $$
@@ -97,25 +97,25 @@ $$
 $$
 A=\Lambda(\gamma e^{i\theta})\Lambda^{-1}
 $$
-![1747962877437](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747962877437.png)
+![1747962877437](RetNet.assets\1747962877437.png)
 $$
 e^{ix}=\cos x+i\sin x
 $$
-![1747962949397](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747962949397.png)
+![1747962949397](RetNet.assets\1747962949397.png)
 $$
 \theta = [\theta_1, \theta_2, \ldots, \theta_{d-1}, \theta_d]
 $$
-![1747963054932](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963054932.png)
+![1747963054932](RetNet.assets\1747963054932.png)
 $$
 e^{i\theta}=[\cos\theta_1,\sin\theta_2,\ldots,\cos\theta_{d-1},\sin\theta_d]
 $$
-![1747963115557](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963115557.png)
+![1747963115557](RetNet.assets\1747963115557.png)
 
 现在我们知道了矩阵A的构成就能得到：
 $$
 A^{n-m}=(\Lambda(\gamma e^{i\theta})\Lambda^{-1})^{n-m}
 $$
-![1747963240422](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963240422.png)
+![1747963240422](RetNet.assets\1747963240422.png)
 $$
 A^{n-m}=\Lambda(\gamma e^{i\theta})^{n-m}\Lambda^{-1}
 $$
@@ -123,15 +123,15 @@ $$
 $$
 \begin{aligned}o_{n}&=\sum_{m=1}^nQ_nA^{n-m}K_m^Tv_m\\&=\sum_{m=1}^nQ_n(\Lambda(\gamma e^{i\theta})^{n-m}\Lambda^{-1})K_m^Tv_m\\&=\sum_{m=1}^nX_nW_Q\Lambda(\gamma e^{i\theta})^{n-m}\Lambda^{-1}(X_mW_K)^Tv_m\\&=\sum_{m=1}^nX_nW_Q\Lambda(\gamma e^{i\theta})^{n-m}\Lambda^{-1}W_K^TX_m^Tv_m\end{aligned}
 $$
-![1747963397741](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963397741.png)
+![1747963397741](RetNet.assets\1747963397741.png)
 $$
 \begin{aligned}o_{n}&=\sum_{m=1}^nQ_n(\gamma e^{i\theta})^{n-m}K_m^Tv_m\\&=\sum_{m=1}^nQ_n(\gamma e^{i\theta})^n(\gamma e^{i\theta})^{-m}K_m^Tv_m\\&=\sum_{m=1}^nQ_n(\gamma e^{i\theta})^n(K_m(\gamma e^{i\theta})^{-m})^Tv_m\\&=\sum_{m=1}^nQ_n(\gamma^ne^{in\theta})(K_m(\gamma^{-m}e^{i(-m)\theta}))^Tv\end{aligned}
 $$
-![1747963524744](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963524744.png)
+![1747963524744](RetNet.assets\1747963524744.png)
 $$
 o_{n}=\sum_{m=1}^nQ_n(\gamma^ne^{in\theta})(K_m(\gamma^{-m}e^{i(-m)\theta}))^Tv_m\\=\sum_{m=1}^n\gamma^{n-m}(Q_ne^{in\theta})(K_me^{i(-m)\theta})^Tv_m
 $$
-![1747963682367](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963682367.png)
+![1747963682367](RetNet.assets\1747963682367.png)
 $$
 e^{i(-m)\theta} = [\cos -m\theta_1, \sin -m\theta_2, \ldots, \cos -m\theta_{d-1}, \sin -m\theta_d]
 $$
@@ -146,21 +146,21 @@ $$
 
 链接：https://arxiv.org/pdf/2104.09864
 
-![1747978666882](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747978666882.png)
+![1747978666882](RetNet.assets\1747978666882.png)
 
 转为复数形式表示就是：
 $$
 e^{i(-m)\theta} = [\cos m\theta_1 - i \sin m\theta_2, \ldots, \cos m\theta_{d-1} - i \sin m\theta_d]
 $$
-![1747963955260](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963955260.png)
+![1747963955260](RetNet.assets\1747963955260.png)
 
-![1747963991744](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747963991744.png)
+![1747963991744](RetNet.assets\1747963991744.png)
 
 所以可得：
 $$
 o_{n}=\sum_{m=1}^n\gamma^{n-m}(Q_ne^{in\theta})(K_me^{i(-m)\theta})^Tv_m\\=\sum_{m=1}^n\gamma^{n-m}(Q_ne^{in\theta})(K_me^{im\theta})^\dagger v_m
 $$
-![1747964082453](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747964082453.png)
+![1747964082453](RetNet.assets\1747964082453.png)
 
 ## **Retention 的训练并行表示**
 
@@ -172,7 +172,7 @@ $$
 $$
 ((Q\odot\Theta)(K\odot\bar{\Theta})^T\odot D)V
 $$
-![1747964579409](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747964579409.png)
+![1747964579409](RetNet.assets\1747964579409.png)
 $$
 Retention(X)=(QK^T\odot D)V
 $$
@@ -209,21 +209,21 @@ $$
 K_n^TV_n=(K_ne^{in\theta})^\dagger v_n
 $$
 
-![1747967967584](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747967967584.png)
+![1747967967584](RetNet.assets\1747967967584.png)
 
 
 
-![1747968039924](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747968039924.png)
+![1747968039924](RetNet.assets\1747968039924.png)
 
 ## **Chunkwise递归表示**
 
-![1747972742012](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747972742012.png)
+![1747972742012](RetNet.assets\1747972742012.png)
 
 训练我们在训练过程中使用平行(等式(5))和分块递归(等式(7))表示。序列或块内的并行化有效地利用GPU来加速计算。更有利的是，分块递归对于长序列训练特别有用，这在FLOPs和内存消耗方面都是有效的。
 
 ## **Gated Multi-Scale Retention**
 
-![1747972849270](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747972849270.png)
+![1747972849270](RetNet.assets\1747972849270.png)
 $$
 \gamma=1-2^{-5-arange(0,h)}\in R^h
 $$
@@ -240,17 +240,17 @@ $$
 MSR(X)=(swish(XW_G)\odot Y)W_O
 $$
 
-![1747973105403](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747973105403.png)
+![1747973105403](RetNet.assets\1747973105403.png)
 
-![1747973136617](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747973136617.png)
+![1747973136617](RetNet.assets\1747973136617.png)
 
 ## **Retention Score 标准化**
 
-![1747973223922](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747973223922.png)
+![1747973223922](RetNet.assets\1747973223922.png)
 
 ## **Retention 网络总体结构**
 
-![1747973316077](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747973316077.png)
+![1747973316077](RetNet.assets\1747973316077.png)
 $$
 Y^{l}=MSR(LN(X^{l}))+X^{l}
 $$
@@ -259,7 +259,7 @@ $$
 X^{l+1}=FFN(LN(Y^l))+Y^l
 $$
 
-![1747973434379](C:\Users\zhuwy\Desktop\笔记\RetNets.assets\1747973434379.png)
+![1747973434379](RetNet.assets\1747973434379.png)
 
 ## 计算
 
